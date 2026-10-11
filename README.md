@@ -1,6 +1,6 @@
 # Deploy and Host Twenty with Railway
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/twenty-v2-crm-sales-workspace)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/twenty-v2-crm-sales-workspace?referralCode=20H68q)
 
 Twenty is an open-source CRM for managing companies, people, opportunities and workflows, with a fast spreadsheet-style interface and a full API. This community template runs Twenty v2 on Railway with a dedicated background worker, Postgres, Redis and a Railway Bucket for files, so your customer data stays in your own project.
 
