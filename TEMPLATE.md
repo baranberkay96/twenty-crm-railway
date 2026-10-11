@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Name | **Twenty v2 CRM Sales Workspace** (version label `v2` = Twenty major version; Twenty tags releases `v2.x.y`) |
-| Description | Modern open-source CRM with background workers and S3 storage. Own your data. (77 chars, unchanged from LISTINGS.md) |
+| Description | Open-source CRM with background workers and S3 storage. Own your data. (77 chars, unchanged from LISTINGS.md) |
 | Category | Other |
 | Tags | twenty, crm, sales, open-source, salesforce-alternative, postgres |
 | User input at deploy | **None.** All secrets are generated. Optional later: SMTP, Google / Microsoft OAuth (mail + calendar sync). |

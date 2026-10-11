@@ -1,557 +1,557 @@
 {
- "name": "Twenty v2 CRM Sales Workspace",
- "description": "Modern open-source CRM with background workers and S3 storage. Own your data.",
- "category": "Other",
- "tags": [
-  "twenty",
-  "crm",
-  "sales",
-  "open-source",
-  "salesforce-alternative",
-  "postgres"
- ],
- "upstream": {
-  "repo": "twentyhq/twenty",
-  "version": "v2.45.8",
-  "checked": "2026-10-10"
- },
- "services": {
-  "Twenty": {
-   "icon": "https://raw.githubusercontent.com/twentyhq/twenty/6fd8dab55243cda291fa45f896caaa9d5e5160b8/packages/twenty-chrome-extension/public/logo/32-32.svg",
-   "source": {
-    "image": "twentycrm/twenty:v2.45.8"
-   },
-   "startCommand": null,
-   "preDeployCommand": "/bin/sh -c \"i=0; until psql $PG_DATABASE_URL -tAc 'select 1' >/dev/null 2>&1; do i=$((i+1)); if [ $i -ge 90 ]; then echo 'Postgres not reachable'; exit 1; fi; sleep 2; done; DISABLE_DB_MIGRATIONS=false DISABLE_CRON_JOBS_REGISTRATION=true exec /app/entrypoint.sh true\"",
-   "healthcheckPath": "/healthz",
-   "healthcheckTimeout": 300,
-   "restartPolicyType": "ON_FAILURE",
-   "restartPolicyMaxRetries": 10,
-   "numReplicas": 1,
-   "cronSchedule": null,
-   "publicDomain": true,
-   "targetPort": 3000,
-   "tcpProxy": null,
-   "volume": null,
-   "variables": {
-    "PORT": {
-     "defaultValue": "3000",
-     "description": "Port Railway routes to and healthchecks (must equal NODE_PORT).",
-     "required": false
-    },
-    "NODE_PORT": {
-     "defaultValue": "3000",
-     "description": "Port the Twenty server listens on.",
-     "required": false
-    },
-    "SERVER_URL": {
-     "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}",
-     "description": "Public URL of this instance (links, OAuth callbacks). Update it when you add a custom domain.",
-     "required": false
-    },
-    "PG_DATABASE_URL": {
-     "defaultValue": "${{Postgres.DATABASE_URL}}",
-     "description": "Postgres connection string (private network).",
-     "required": false
-    },
-    "REDIS_URL": {
-     "defaultValue": "${{Redis.REDIS_URL}}?family=0",
-     "description": "Redis for cache and BullMQ queues. family=0 lets ioredis use IPv4 or IPv6 on the private network.",
-     "required": false
-    },
-    "ENCRYPTION_KEY": {
-     "defaultValue": "${{secret(48)}}",
-     "description": "Primary key for at-rest encryption of stored secrets (connected-account tokens, API keys). Never change it without a rotation (see FALLBACK_ENCRYPTION_KEY in Twenty docs).",
-     "required": false
-    },
-    "APP_SECRET": {
-     "defaultValue": "${{secret(48)}}",
-     "description": "Legacy application secret, kept for compatibility and as fallback key. Do not change after first boot.",
-     "required": false
-    },
-    "STORAGE_TYPE": {
-     "defaultValue": "S_3",
-     "description": "File storage driver. S_3 keeps attachments in the Railway Bucket so server and worker share them and the server stays stateless.",
-     "required": false
-    },
-    "STORAGE_S3_NAME": {
-     "defaultValue": "${{Bucket.BUCKET}}",
-     "description": "Bucket name (Railway Bucket).",
-     "required": false
-    },
-    "STORAGE_S3_REGION": {
-     "defaultValue": "${{Bucket.REGION}}",
-     "description": "Bucket region (Railway Bucket).",
-     "required": false
-    },
-    "STORAGE_S3_ENDPOINT": {
-     "defaultValue": "${{Bucket.ENDPOINT}}",
-     "description": "S3 endpoint (Railway Bucket).",
-     "required": false
-    },
-    "STORAGE_S3_ACCESS_KEY_ID": {
-     "defaultValue": "${{Bucket.ACCESS_KEY_ID}}",
-     "description": "Bucket access key.",
-     "required": false
-    },
-    "STORAGE_S3_SECRET_ACCESS_KEY": {
-     "defaultValue": "${{Bucket.SECRET_ACCESS_KEY}}",
-     "description": "Bucket secret key.",
-     "required": false
-    },
-    "LOGIC_FUNCTION_TYPE": {
-     "defaultValue": "DISABLED",
-     "description": "Logic functions / workflow code steps. LOCAL runs user code unsandboxed inside the container: enable only if every workspace member is trusted.",
-     "required": false
-    },
-    "EMAIL_DRIVER": {
-     "defaultValue": "LOGGER",
-     "description": "LOGGER writes e-mails to the logs. Set SMTP (and the EMAIL_SMTP_* values) to send invitations and password resets. Can also be set in Settings > Admin Panel.",
-     "required": false
-    },
-    "EMAIL_FROM_ADDRESS": {
-     "defaultValue": "",
-     "description": "Sender address for system e-mails, e.g. crm@yourcompany.com. Optional.",
-     "required": false
-    },
-    "EMAIL_FROM_NAME": {
-     "defaultValue": "Twenty CRM",
-     "description": "Sender display name for system e-mails.",
-     "required": false
-    },
-    "EMAIL_SMTP_HOST": {
-     "defaultValue": "",
-     "description": "SMTP host, e.g. smtp.gmail.com or smtp.office365.com. Optional.",
-     "required": false
-    },
-    "EMAIL_SMTP_PORT": {
-     "defaultValue": "587",
-     "description": "SMTP port (587 STARTTLS, 465 TLS).",
-     "required": false
-    },
-    "EMAIL_SMTP_USER": {
-     "defaultValue": "",
-     "description": "SMTP username. Optional.",
-     "required": false
-    },
-    "EMAIL_SMTP_PASSWORD": {
-     "defaultValue": "",
-     "description": "SMTP password or app password. Optional.",
-     "required": false
-    },
-    "AUTH_GOOGLE_ENABLED": {
-     "defaultValue": "false",
-     "description": "Allow 'Sign in with Google' (needs the Google client below).",
-     "required": false
-    },
-    "MESSAGING_PROVIDER_GMAIL_ENABLED": {
-     "defaultValue": "false",
-     "description": "Enable Gmail sync (needs the Google client below).",
-     "required": false
-    },
-    "CALENDAR_PROVIDER_GOOGLE_ENABLED": {
-     "defaultValue": "false",
-     "description": "Enable Google Calendar sync (needs the Google client below).",
-     "required": false
-    },
-    "AUTH_GOOGLE_CLIENT_ID": {
-     "defaultValue": "",
-     "description": "Google OAuth client ID (Google Cloud console). Optional.",
-     "required": false
-    },
-    "AUTH_GOOGLE_CLIENT_SECRET": {
-     "defaultValue": "",
-     "description": "Google OAuth client secret. Optional.",
-     "required": false
-    },
-    "AUTH_GOOGLE_CALLBACK_URL": {
-     "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}/auth/google/redirect",
-     "description": "Authorised redirect URI for Google sign-in. Register it in Google Cloud.",
-     "required": false
-    },
-    "AUTH_GOOGLE_APIS_CALLBACK_URL": {
-     "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}/auth/google-apis/get-access-token",
-     "description": "Authorised redirect URI for Gmail/Calendar sync. Register it in Google Cloud.",
-     "required": false
-    },
-    "AUTH_MICROSOFT_ENABLED": {
-     "defaultValue": "false",
-     "description": "Allow 'Sign in with Microsoft' (needs the Microsoft app below).",
-     "required": false
-    },
-    "MESSAGING_PROVIDER_MICROSOFT_ENABLED": {
-     "defaultValue": "false",
-     "description": "Enable Outlook / Microsoft 365 mail sync.",
-     "required": false
-    },
-    "CALENDAR_PROVIDER_MICROSOFT_ENABLED": {
-     "defaultValue": "false",
-     "description": "Enable Microsoft 365 calendar sync.",
-     "required": false
-    },
-    "AUTH_MICROSOFT_CLIENT_ID": {
-     "defaultValue": "",
-     "description": "Microsoft Entra app (client) ID. Optional.",
-     "required": false
-    },
-    "AUTH_MICROSOFT_CLIENT_SECRET": {
-     "defaultValue": "",
-     "description": "Microsoft Entra client secret. Optional.",
-     "required": false
-    },
-    "AUTH_MICROSOFT_CALLBACK_URL": {
-     "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}/auth/microsoft/redirect",
-     "description": "Redirect URI for Microsoft sign-in. Register it in Entra ID.",
-     "required": false
-    },
-    "AUTH_MICROSOFT_APIS_CALLBACK_URL": {
-     "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}/auth/microsoft-apis/get-access-token",
-     "description": "Redirect URI for Microsoft mail/calendar sync. Register it in Entra ID.",
-     "required": false
-    },
-    "DISABLE_DB_MIGRATIONS": {
-     "defaultValue": "true",
-     "description": "Migrations run in the pre-deploy command, not at container start, so replicas never migrate concurrently.",
-     "required": false
-    },
-    "DISABLE_CRON_JOBS_REGISTRATION": {
-     "defaultValue": "false",
-     "description": "The server registers Twenty's background cron jobs on start (idempotent).",
-     "required": false
-    }
-   }
+  "name": "Twenty v2 CRM Sales Workspace",
+  "description": "Open-source CRM with background workers and S3 storage. Own your data.",
+  "category": "Other",
+  "tags": [
+    "twenty",
+    "crm",
+    "sales",
+    "open-source",
+    "salesforce-alternative",
+    "postgres"
+  ],
+  "upstream": {
+    "repo": "twentyhq/twenty",
+    "version": "v2.45.8",
+    "checked": "2026-10-10"
   },
-  "Twenty Worker": {
-   "icon": "https://raw.githubusercontent.com/twentyhq/twenty/6fd8dab55243cda291fa45f896caaa9d5e5160b8/packages/twenty-chrome-extension/public/logo/32-32.svg",
-   "source": {
-    "image": "twentycrm/twenty:v2.45.8"
-   },
-   "startCommand": "yarn worker:prod",
-   "preDeployCommand": null,
-   "healthcheckPath": null,
-   "healthcheckTimeout": null,
-   "restartPolicyType": "ON_FAILURE",
-   "restartPolicyMaxRetries": 10,
-   "numReplicas": 1,
-   "cronSchedule": null,
-   "publicDomain": false,
-   "targetPort": null,
-   "tcpProxy": null,
-   "volume": null,
-   "variables": {
-    "SERVER_URL": {
-     "defaultValue": "${{Twenty.SERVER_URL}}",
-     "description": "Shared with the server: references Twenty.SERVER_URL (edit it there).",
-     "required": false
+  "services": {
+    "Twenty": {
+      "icon": "https://raw.githubusercontent.com/twentyhq/twenty/6fd8dab55243cda291fa45f896caaa9d5e5160b8/packages/twenty-chrome-extension/public/logo/32-32.svg",
+      "source": {
+        "image": "twentycrm/twenty:v2.45.8"
+      },
+      "startCommand": null,
+      "preDeployCommand": "/bin/sh -c \"i=0; until psql $PG_DATABASE_URL -tAc 'select 1' >/dev/null 2>&1; do i=$((i+1)); if [ $i -ge 90 ]; then echo 'Postgres not reachable'; exit 1; fi; sleep 2; done; DISABLE_DB_MIGRATIONS=false DISABLE_CRON_JOBS_REGISTRATION=true exec /app/entrypoint.sh true\"",
+      "healthcheckPath": "/healthz",
+      "healthcheckTimeout": 300,
+      "restartPolicyType": "ON_FAILURE",
+      "restartPolicyMaxRetries": 10,
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": true,
+      "targetPort": 3000,
+      "tcpProxy": null,
+      "volume": null,
+      "variables": {
+        "PORT": {
+          "defaultValue": "3000",
+          "description": "Port Railway routes to and healthchecks (must equal NODE_PORT).",
+          "required": false
+        },
+        "NODE_PORT": {
+          "defaultValue": "3000",
+          "description": "Port the Twenty server listens on.",
+          "required": false
+        },
+        "SERVER_URL": {
+          "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}",
+          "description": "Public URL of this instance (links, OAuth callbacks). Update it when you add a custom domain.",
+          "required": false
+        },
+        "PG_DATABASE_URL": {
+          "defaultValue": "${{Postgres.DATABASE_URL}}",
+          "description": "Postgres connection string (private network).",
+          "required": false
+        },
+        "REDIS_URL": {
+          "defaultValue": "${{Redis.REDIS_URL}}?family=0",
+          "description": "Redis for cache and BullMQ queues. family=0 lets ioredis use IPv4 or IPv6 on the private network.",
+          "required": false
+        },
+        "ENCRYPTION_KEY": {
+          "defaultValue": "${{secret(48)}}",
+          "description": "Primary key for at-rest encryption of stored secrets (connected-account tokens, API keys). Never change it without a rotation (see FALLBACK_ENCRYPTION_KEY in Twenty docs).",
+          "required": false
+        },
+        "APP_SECRET": {
+          "defaultValue": "${{secret(48)}}",
+          "description": "Legacy application secret, kept for compatibility and as fallback key. Do not change after first boot.",
+          "required": false
+        },
+        "STORAGE_TYPE": {
+          "defaultValue": "S_3",
+          "description": "File storage driver. S_3 keeps attachments in the Railway Bucket so server and worker share them and the server stays stateless.",
+          "required": false
+        },
+        "STORAGE_S3_NAME": {
+          "defaultValue": "${{Bucket.BUCKET}}",
+          "description": "Bucket name (Railway Bucket).",
+          "required": false
+        },
+        "STORAGE_S3_REGION": {
+          "defaultValue": "${{Bucket.REGION}}",
+          "description": "Bucket region (Railway Bucket).",
+          "required": false
+        },
+        "STORAGE_S3_ENDPOINT": {
+          "defaultValue": "${{Bucket.ENDPOINT}}",
+          "description": "S3 endpoint (Railway Bucket).",
+          "required": false
+        },
+        "STORAGE_S3_ACCESS_KEY_ID": {
+          "defaultValue": "${{Bucket.ACCESS_KEY_ID}}",
+          "description": "Bucket access key.",
+          "required": false
+        },
+        "STORAGE_S3_SECRET_ACCESS_KEY": {
+          "defaultValue": "${{Bucket.SECRET_ACCESS_KEY}}",
+          "description": "Bucket secret key.",
+          "required": false
+        },
+        "LOGIC_FUNCTION_TYPE": {
+          "defaultValue": "DISABLED",
+          "description": "Logic functions / workflow code steps. LOCAL runs user code unsandboxed inside the container: enable only if every workspace member is trusted.",
+          "required": false
+        },
+        "EMAIL_DRIVER": {
+          "defaultValue": "LOGGER",
+          "description": "LOGGER writes e-mails to the logs. Set SMTP (and the EMAIL_SMTP_* values) to send invitations and password resets. Can also be set in Settings > Admin Panel.",
+          "required": false
+        },
+        "EMAIL_FROM_ADDRESS": {
+          "defaultValue": "",
+          "description": "Sender address for system e-mails, e.g. crm@yourcompany.com. Optional.",
+          "required": false
+        },
+        "EMAIL_FROM_NAME": {
+          "defaultValue": "Twenty CRM",
+          "description": "Sender display name for system e-mails.",
+          "required": false
+        },
+        "EMAIL_SMTP_HOST": {
+          "defaultValue": "",
+          "description": "SMTP host, e.g. smtp.gmail.com or smtp.office365.com. Optional.",
+          "required": false
+        },
+        "EMAIL_SMTP_PORT": {
+          "defaultValue": "587",
+          "description": "SMTP port (587 STARTTLS, 465 TLS).",
+          "required": false
+        },
+        "EMAIL_SMTP_USER": {
+          "defaultValue": "",
+          "description": "SMTP username. Optional.",
+          "required": false
+        },
+        "EMAIL_SMTP_PASSWORD": {
+          "defaultValue": "",
+          "description": "SMTP password or app password. Optional.",
+          "required": false
+        },
+        "AUTH_GOOGLE_ENABLED": {
+          "defaultValue": "false",
+          "description": "Allow 'Sign in with Google' (needs the Google client below).",
+          "required": false
+        },
+        "MESSAGING_PROVIDER_GMAIL_ENABLED": {
+          "defaultValue": "false",
+          "description": "Enable Gmail sync (needs the Google client below).",
+          "required": false
+        },
+        "CALENDAR_PROVIDER_GOOGLE_ENABLED": {
+          "defaultValue": "false",
+          "description": "Enable Google Calendar sync (needs the Google client below).",
+          "required": false
+        },
+        "AUTH_GOOGLE_CLIENT_ID": {
+          "defaultValue": "",
+          "description": "Google OAuth client ID (Google Cloud console). Optional.",
+          "required": false
+        },
+        "AUTH_GOOGLE_CLIENT_SECRET": {
+          "defaultValue": "",
+          "description": "Google OAuth client secret. Optional.",
+          "required": false
+        },
+        "AUTH_GOOGLE_CALLBACK_URL": {
+          "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}/auth/google/redirect",
+          "description": "Authorised redirect URI for Google sign-in. Register it in Google Cloud.",
+          "required": false
+        },
+        "AUTH_GOOGLE_APIS_CALLBACK_URL": {
+          "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}/auth/google-apis/get-access-token",
+          "description": "Authorised redirect URI for Gmail/Calendar sync. Register it in Google Cloud.",
+          "required": false
+        },
+        "AUTH_MICROSOFT_ENABLED": {
+          "defaultValue": "false",
+          "description": "Allow 'Sign in with Microsoft' (needs the Microsoft app below).",
+          "required": false
+        },
+        "MESSAGING_PROVIDER_MICROSOFT_ENABLED": {
+          "defaultValue": "false",
+          "description": "Enable Outlook / Microsoft 365 mail sync.",
+          "required": false
+        },
+        "CALENDAR_PROVIDER_MICROSOFT_ENABLED": {
+          "defaultValue": "false",
+          "description": "Enable Microsoft 365 calendar sync.",
+          "required": false
+        },
+        "AUTH_MICROSOFT_CLIENT_ID": {
+          "defaultValue": "",
+          "description": "Microsoft Entra app (client) ID. Optional.",
+          "required": false
+        },
+        "AUTH_MICROSOFT_CLIENT_SECRET": {
+          "defaultValue": "",
+          "description": "Microsoft Entra client secret. Optional.",
+          "required": false
+        },
+        "AUTH_MICROSOFT_CALLBACK_URL": {
+          "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}/auth/microsoft/redirect",
+          "description": "Redirect URI for Microsoft sign-in. Register it in Entra ID.",
+          "required": false
+        },
+        "AUTH_MICROSOFT_APIS_CALLBACK_URL": {
+          "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}/auth/microsoft-apis/get-access-token",
+          "description": "Redirect URI for Microsoft mail/calendar sync. Register it in Entra ID.",
+          "required": false
+        },
+        "DISABLE_DB_MIGRATIONS": {
+          "defaultValue": "true",
+          "description": "Migrations run in the pre-deploy command, not at container start, so replicas never migrate concurrently.",
+          "required": false
+        },
+        "DISABLE_CRON_JOBS_REGISTRATION": {
+          "defaultValue": "false",
+          "description": "The server registers Twenty's background cron jobs on start (idempotent).",
+          "required": false
+        }
+      }
     },
-    "PG_DATABASE_URL": {
-     "defaultValue": "${{Twenty.PG_DATABASE_URL}}",
-     "description": "Shared with the server: references Twenty.PG_DATABASE_URL (edit it there).",
-     "required": false
+    "Twenty Worker": {
+      "icon": "https://raw.githubusercontent.com/twentyhq/twenty/6fd8dab55243cda291fa45f896caaa9d5e5160b8/packages/twenty-chrome-extension/public/logo/32-32.svg",
+      "source": {
+        "image": "twentycrm/twenty:v2.45.8"
+      },
+      "startCommand": "yarn worker:prod",
+      "preDeployCommand": null,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ON_FAILURE",
+      "restartPolicyMaxRetries": 10,
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": null,
+      "variables": {
+        "SERVER_URL": {
+          "defaultValue": "${{Twenty.SERVER_URL}}",
+          "description": "Shared with the server: references Twenty.SERVER_URL (edit it there).",
+          "required": false
+        },
+        "PG_DATABASE_URL": {
+          "defaultValue": "${{Twenty.PG_DATABASE_URL}}",
+          "description": "Shared with the server: references Twenty.PG_DATABASE_URL (edit it there).",
+          "required": false
+        },
+        "REDIS_URL": {
+          "defaultValue": "${{Twenty.REDIS_URL}}",
+          "description": "Shared with the server: references Twenty.REDIS_URL (edit it there).",
+          "required": false
+        },
+        "ENCRYPTION_KEY": {
+          "defaultValue": "${{Twenty.ENCRYPTION_KEY}}",
+          "description": "Shared with the server: references Twenty.ENCRYPTION_KEY (edit it there).",
+          "required": false
+        },
+        "APP_SECRET": {
+          "defaultValue": "${{Twenty.APP_SECRET}}",
+          "description": "Shared with the server: references Twenty.APP_SECRET (edit it there).",
+          "required": false
+        },
+        "STORAGE_TYPE": {
+          "defaultValue": "${{Twenty.STORAGE_TYPE}}",
+          "description": "Shared with the server: references Twenty.STORAGE_TYPE (edit it there).",
+          "required": false
+        },
+        "STORAGE_S3_NAME": {
+          "defaultValue": "${{Twenty.STORAGE_S3_NAME}}",
+          "description": "Shared with the server: references Twenty.STORAGE_S3_NAME (edit it there).",
+          "required": false
+        },
+        "STORAGE_S3_REGION": {
+          "defaultValue": "${{Twenty.STORAGE_S3_REGION}}",
+          "description": "Shared with the server: references Twenty.STORAGE_S3_REGION (edit it there).",
+          "required": false
+        },
+        "STORAGE_S3_ENDPOINT": {
+          "defaultValue": "${{Twenty.STORAGE_S3_ENDPOINT}}",
+          "description": "Shared with the server: references Twenty.STORAGE_S3_ENDPOINT (edit it there).",
+          "required": false
+        },
+        "STORAGE_S3_ACCESS_KEY_ID": {
+          "defaultValue": "${{Twenty.STORAGE_S3_ACCESS_KEY_ID}}",
+          "description": "Shared with the server: references Twenty.STORAGE_S3_ACCESS_KEY_ID (edit it there).",
+          "required": false
+        },
+        "STORAGE_S3_SECRET_ACCESS_KEY": {
+          "defaultValue": "${{Twenty.STORAGE_S3_SECRET_ACCESS_KEY}}",
+          "description": "Shared with the server: references Twenty.STORAGE_S3_SECRET_ACCESS_KEY (edit it there).",
+          "required": false
+        },
+        "LOGIC_FUNCTION_TYPE": {
+          "defaultValue": "${{Twenty.LOGIC_FUNCTION_TYPE}}",
+          "description": "Shared with the server: references Twenty.LOGIC_FUNCTION_TYPE (edit it there).",
+          "required": false
+        },
+        "EMAIL_DRIVER": {
+          "defaultValue": "${{Twenty.EMAIL_DRIVER}}",
+          "description": "Shared with the server: references Twenty.EMAIL_DRIVER (edit it there).",
+          "required": false
+        },
+        "EMAIL_FROM_ADDRESS": {
+          "defaultValue": "${{Twenty.EMAIL_FROM_ADDRESS}}",
+          "description": "Shared with the server: references Twenty.EMAIL_FROM_ADDRESS (edit it there).",
+          "required": false
+        },
+        "EMAIL_FROM_NAME": {
+          "defaultValue": "${{Twenty.EMAIL_FROM_NAME}}",
+          "description": "Shared with the server: references Twenty.EMAIL_FROM_NAME (edit it there).",
+          "required": false
+        },
+        "EMAIL_SMTP_HOST": {
+          "defaultValue": "${{Twenty.EMAIL_SMTP_HOST}}",
+          "description": "Shared with the server: references Twenty.EMAIL_SMTP_HOST (edit it there).",
+          "required": false
+        },
+        "EMAIL_SMTP_PORT": {
+          "defaultValue": "${{Twenty.EMAIL_SMTP_PORT}}",
+          "description": "Shared with the server: references Twenty.EMAIL_SMTP_PORT (edit it there).",
+          "required": false
+        },
+        "EMAIL_SMTP_USER": {
+          "defaultValue": "${{Twenty.EMAIL_SMTP_USER}}",
+          "description": "Shared with the server: references Twenty.EMAIL_SMTP_USER (edit it there).",
+          "required": false
+        },
+        "EMAIL_SMTP_PASSWORD": {
+          "defaultValue": "${{Twenty.EMAIL_SMTP_PASSWORD}}",
+          "description": "Shared with the server: references Twenty.EMAIL_SMTP_PASSWORD (edit it there).",
+          "required": false
+        },
+        "AUTH_GOOGLE_ENABLED": {
+          "defaultValue": "${{Twenty.AUTH_GOOGLE_ENABLED}}",
+          "description": "Shared with the server: references Twenty.AUTH_GOOGLE_ENABLED (edit it there).",
+          "required": false
+        },
+        "MESSAGING_PROVIDER_GMAIL_ENABLED": {
+          "defaultValue": "${{Twenty.MESSAGING_PROVIDER_GMAIL_ENABLED}}",
+          "description": "Shared with the server: references Twenty.MESSAGING_PROVIDER_GMAIL_ENABLED (edit it there).",
+          "required": false
+        },
+        "CALENDAR_PROVIDER_GOOGLE_ENABLED": {
+          "defaultValue": "${{Twenty.CALENDAR_PROVIDER_GOOGLE_ENABLED}}",
+          "description": "Shared with the server: references Twenty.CALENDAR_PROVIDER_GOOGLE_ENABLED (edit it there).",
+          "required": false
+        },
+        "AUTH_GOOGLE_CLIENT_ID": {
+          "defaultValue": "${{Twenty.AUTH_GOOGLE_CLIENT_ID}}",
+          "description": "Shared with the server: references Twenty.AUTH_GOOGLE_CLIENT_ID (edit it there).",
+          "required": false
+        },
+        "AUTH_GOOGLE_CLIENT_SECRET": {
+          "defaultValue": "${{Twenty.AUTH_GOOGLE_CLIENT_SECRET}}",
+          "description": "Shared with the server: references Twenty.AUTH_GOOGLE_CLIENT_SECRET (edit it there).",
+          "required": false
+        },
+        "AUTH_GOOGLE_CALLBACK_URL": {
+          "defaultValue": "${{Twenty.AUTH_GOOGLE_CALLBACK_URL}}",
+          "description": "Shared with the server: references Twenty.AUTH_GOOGLE_CALLBACK_URL (edit it there).",
+          "required": false
+        },
+        "AUTH_GOOGLE_APIS_CALLBACK_URL": {
+          "defaultValue": "${{Twenty.AUTH_GOOGLE_APIS_CALLBACK_URL}}",
+          "description": "Shared with the server: references Twenty.AUTH_GOOGLE_APIS_CALLBACK_URL (edit it there).",
+          "required": false
+        },
+        "AUTH_MICROSOFT_ENABLED": {
+          "defaultValue": "${{Twenty.AUTH_MICROSOFT_ENABLED}}",
+          "description": "Shared with the server: references Twenty.AUTH_MICROSOFT_ENABLED (edit it there).",
+          "required": false
+        },
+        "MESSAGING_PROVIDER_MICROSOFT_ENABLED": {
+          "defaultValue": "${{Twenty.MESSAGING_PROVIDER_MICROSOFT_ENABLED}}",
+          "description": "Shared with the server: references Twenty.MESSAGING_PROVIDER_MICROSOFT_ENABLED (edit it there).",
+          "required": false
+        },
+        "CALENDAR_PROVIDER_MICROSOFT_ENABLED": {
+          "defaultValue": "${{Twenty.CALENDAR_PROVIDER_MICROSOFT_ENABLED}}",
+          "description": "Shared with the server: references Twenty.CALENDAR_PROVIDER_MICROSOFT_ENABLED (edit it there).",
+          "required": false
+        },
+        "AUTH_MICROSOFT_CLIENT_ID": {
+          "defaultValue": "${{Twenty.AUTH_MICROSOFT_CLIENT_ID}}",
+          "description": "Shared with the server: references Twenty.AUTH_MICROSOFT_CLIENT_ID (edit it there).",
+          "required": false
+        },
+        "AUTH_MICROSOFT_CLIENT_SECRET": {
+          "defaultValue": "${{Twenty.AUTH_MICROSOFT_CLIENT_SECRET}}",
+          "description": "Shared with the server: references Twenty.AUTH_MICROSOFT_CLIENT_SECRET (edit it there).",
+          "required": false
+        },
+        "AUTH_MICROSOFT_CALLBACK_URL": {
+          "defaultValue": "${{Twenty.AUTH_MICROSOFT_CALLBACK_URL}}",
+          "description": "Shared with the server: references Twenty.AUTH_MICROSOFT_CALLBACK_URL (edit it there).",
+          "required": false
+        },
+        "AUTH_MICROSOFT_APIS_CALLBACK_URL": {
+          "defaultValue": "${{Twenty.AUTH_MICROSOFT_APIS_CALLBACK_URL}}",
+          "description": "Shared with the server: references Twenty.AUTH_MICROSOFT_APIS_CALLBACK_URL (edit it there).",
+          "required": false
+        },
+        "DISABLE_DB_MIGRATIONS": {
+          "defaultValue": "true",
+          "description": "The worker never runs migrations.",
+          "required": false
+        },
+        "DISABLE_CRON_JOBS_REGISTRATION": {
+          "defaultValue": "true",
+          "description": "Cron jobs are registered by the server.",
+          "required": false
+        }
+      }
     },
-    "REDIS_URL": {
-     "defaultValue": "${{Twenty.REDIS_URL}}",
-     "description": "Shared with the server: references Twenty.REDIS_URL (edit it there).",
-     "required": false
+    "Postgres": {
+      "icon": "https://devicons.railway.app/i/postgresql.svg",
+      "source": {
+        "image": "ghcr.io/railwayapp-templates/postgres-ssl:18"
+      },
+      "startCommand": null,
+      "preDeployCommand": null,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ON_FAILURE",
+      "restartPolicyMaxRetries": 10,
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": {
+        "mountPath": "/var/lib/postgresql/data"
+      },
+      "variables": {
+        "PGDATA": {
+          "defaultValue": "/var/lib/postgresql/data/pgdata",
+          "description": "Location where the database will be initialized.",
+          "required": false
+        },
+        "PGHOST": {
+          "defaultValue": "${{RAILWAY_PRIVATE_DOMAIN}}",
+          "description": "Railway Private Domain Name.",
+          "required": false
+        },
+        "PGPORT": {
+          "defaultValue": "5432",
+          "description": "Port to connect to Postgres.",
+          "required": false
+        },
+        "PGUSER": {
+          "defaultValue": "${{ POSTGRES_USER }}",
+          "description": "Required variable for Data panel.",
+          "required": false
+        },
+        "PGDATABASE": {
+          "defaultValue": "${{POSTGRES_DB}}",
+          "description": "Required variable for the data panel.",
+          "required": false
+        },
+        "PGPASSWORD": {
+          "defaultValue": "${{POSTGRES_PASSWORD}}",
+          "description": "Required variable for Data panel.",
+          "required": false
+        },
+        "POSTGRES_DB": {
+          "defaultValue": "railway",
+          "description": "Default database created when image is started.",
+          "required": false
+        },
+        "DATABASE_URL": {
+          "defaultValue": "postgresql://${{PGUSER}}:${{POSTGRES_PASSWORD}}@${{RAILWAY_PRIVATE_DOMAIN}}:5432/${{PGDATABASE}}",
+          "description": "URL to connect to Postgres database.",
+          "required": false
+        },
+        "POSTGRES_USER": {
+          "defaultValue": "postgres",
+          "description": "User to connect to Postgres DB.",
+          "required": false
+        },
+        "SSL_CERT_DAYS": {
+          "defaultValue": "820",
+          "description": "SSL certificate expiry in days.",
+          "required": false
+        },
+        "POSTGRES_PASSWORD": {
+          "defaultValue": "${{ secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\") }}",
+          "description": "Password to connect to DB.",
+          "required": false
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "defaultValue": "60",
+          "description": "Allow Postgres to cleanly shut down.",
+          "required": false
+        }
+      }
     },
-    "ENCRYPTION_KEY": {
-     "defaultValue": "${{Twenty.ENCRYPTION_KEY}}",
-     "description": "Shared with the server: references Twenty.ENCRYPTION_KEY (edit it there).",
-     "required": false
-    },
-    "APP_SECRET": {
-     "defaultValue": "${{Twenty.APP_SECRET}}",
-     "description": "Shared with the server: references Twenty.APP_SECRET (edit it there).",
-     "required": false
-    },
-    "STORAGE_TYPE": {
-     "defaultValue": "${{Twenty.STORAGE_TYPE}}",
-     "description": "Shared with the server: references Twenty.STORAGE_TYPE (edit it there).",
-     "required": false
-    },
-    "STORAGE_S3_NAME": {
-     "defaultValue": "${{Twenty.STORAGE_S3_NAME}}",
-     "description": "Shared with the server: references Twenty.STORAGE_S3_NAME (edit it there).",
-     "required": false
-    },
-    "STORAGE_S3_REGION": {
-     "defaultValue": "${{Twenty.STORAGE_S3_REGION}}",
-     "description": "Shared with the server: references Twenty.STORAGE_S3_REGION (edit it there).",
-     "required": false
-    },
-    "STORAGE_S3_ENDPOINT": {
-     "defaultValue": "${{Twenty.STORAGE_S3_ENDPOINT}}",
-     "description": "Shared with the server: references Twenty.STORAGE_S3_ENDPOINT (edit it there).",
-     "required": false
-    },
-    "STORAGE_S3_ACCESS_KEY_ID": {
-     "defaultValue": "${{Twenty.STORAGE_S3_ACCESS_KEY_ID}}",
-     "description": "Shared with the server: references Twenty.STORAGE_S3_ACCESS_KEY_ID (edit it there).",
-     "required": false
-    },
-    "STORAGE_S3_SECRET_ACCESS_KEY": {
-     "defaultValue": "${{Twenty.STORAGE_S3_SECRET_ACCESS_KEY}}",
-     "description": "Shared with the server: references Twenty.STORAGE_S3_SECRET_ACCESS_KEY (edit it there).",
-     "required": false
-    },
-    "LOGIC_FUNCTION_TYPE": {
-     "defaultValue": "${{Twenty.LOGIC_FUNCTION_TYPE}}",
-     "description": "Shared with the server: references Twenty.LOGIC_FUNCTION_TYPE (edit it there).",
-     "required": false
-    },
-    "EMAIL_DRIVER": {
-     "defaultValue": "${{Twenty.EMAIL_DRIVER}}",
-     "description": "Shared with the server: references Twenty.EMAIL_DRIVER (edit it there).",
-     "required": false
-    },
-    "EMAIL_FROM_ADDRESS": {
-     "defaultValue": "${{Twenty.EMAIL_FROM_ADDRESS}}",
-     "description": "Shared with the server: references Twenty.EMAIL_FROM_ADDRESS (edit it there).",
-     "required": false
-    },
-    "EMAIL_FROM_NAME": {
-     "defaultValue": "${{Twenty.EMAIL_FROM_NAME}}",
-     "description": "Shared with the server: references Twenty.EMAIL_FROM_NAME (edit it there).",
-     "required": false
-    },
-    "EMAIL_SMTP_HOST": {
-     "defaultValue": "${{Twenty.EMAIL_SMTP_HOST}}",
-     "description": "Shared with the server: references Twenty.EMAIL_SMTP_HOST (edit it there).",
-     "required": false
-    },
-    "EMAIL_SMTP_PORT": {
-     "defaultValue": "${{Twenty.EMAIL_SMTP_PORT}}",
-     "description": "Shared with the server: references Twenty.EMAIL_SMTP_PORT (edit it there).",
-     "required": false
-    },
-    "EMAIL_SMTP_USER": {
-     "defaultValue": "${{Twenty.EMAIL_SMTP_USER}}",
-     "description": "Shared with the server: references Twenty.EMAIL_SMTP_USER (edit it there).",
-     "required": false
-    },
-    "EMAIL_SMTP_PASSWORD": {
-     "defaultValue": "${{Twenty.EMAIL_SMTP_PASSWORD}}",
-     "description": "Shared with the server: references Twenty.EMAIL_SMTP_PASSWORD (edit it there).",
-     "required": false
-    },
-    "AUTH_GOOGLE_ENABLED": {
-     "defaultValue": "${{Twenty.AUTH_GOOGLE_ENABLED}}",
-     "description": "Shared with the server: references Twenty.AUTH_GOOGLE_ENABLED (edit it there).",
-     "required": false
-    },
-    "MESSAGING_PROVIDER_GMAIL_ENABLED": {
-     "defaultValue": "${{Twenty.MESSAGING_PROVIDER_GMAIL_ENABLED}}",
-     "description": "Shared with the server: references Twenty.MESSAGING_PROVIDER_GMAIL_ENABLED (edit it there).",
-     "required": false
-    },
-    "CALENDAR_PROVIDER_GOOGLE_ENABLED": {
-     "defaultValue": "${{Twenty.CALENDAR_PROVIDER_GOOGLE_ENABLED}}",
-     "description": "Shared with the server: references Twenty.CALENDAR_PROVIDER_GOOGLE_ENABLED (edit it there).",
-     "required": false
-    },
-    "AUTH_GOOGLE_CLIENT_ID": {
-     "defaultValue": "${{Twenty.AUTH_GOOGLE_CLIENT_ID}}",
-     "description": "Shared with the server: references Twenty.AUTH_GOOGLE_CLIENT_ID (edit it there).",
-     "required": false
-    },
-    "AUTH_GOOGLE_CLIENT_SECRET": {
-     "defaultValue": "${{Twenty.AUTH_GOOGLE_CLIENT_SECRET}}",
-     "description": "Shared with the server: references Twenty.AUTH_GOOGLE_CLIENT_SECRET (edit it there).",
-     "required": false
-    },
-    "AUTH_GOOGLE_CALLBACK_URL": {
-     "defaultValue": "${{Twenty.AUTH_GOOGLE_CALLBACK_URL}}",
-     "description": "Shared with the server: references Twenty.AUTH_GOOGLE_CALLBACK_URL (edit it there).",
-     "required": false
-    },
-    "AUTH_GOOGLE_APIS_CALLBACK_URL": {
-     "defaultValue": "${{Twenty.AUTH_GOOGLE_APIS_CALLBACK_URL}}",
-     "description": "Shared with the server: references Twenty.AUTH_GOOGLE_APIS_CALLBACK_URL (edit it there).",
-     "required": false
-    },
-    "AUTH_MICROSOFT_ENABLED": {
-     "defaultValue": "${{Twenty.AUTH_MICROSOFT_ENABLED}}",
-     "description": "Shared with the server: references Twenty.AUTH_MICROSOFT_ENABLED (edit it there).",
-     "required": false
-    },
-    "MESSAGING_PROVIDER_MICROSOFT_ENABLED": {
-     "defaultValue": "${{Twenty.MESSAGING_PROVIDER_MICROSOFT_ENABLED}}",
-     "description": "Shared with the server: references Twenty.MESSAGING_PROVIDER_MICROSOFT_ENABLED (edit it there).",
-     "required": false
-    },
-    "CALENDAR_PROVIDER_MICROSOFT_ENABLED": {
-     "defaultValue": "${{Twenty.CALENDAR_PROVIDER_MICROSOFT_ENABLED}}",
-     "description": "Shared with the server: references Twenty.CALENDAR_PROVIDER_MICROSOFT_ENABLED (edit it there).",
-     "required": false
-    },
-    "AUTH_MICROSOFT_CLIENT_ID": {
-     "defaultValue": "${{Twenty.AUTH_MICROSOFT_CLIENT_ID}}",
-     "description": "Shared with the server: references Twenty.AUTH_MICROSOFT_CLIENT_ID (edit it there).",
-     "required": false
-    },
-    "AUTH_MICROSOFT_CLIENT_SECRET": {
-     "defaultValue": "${{Twenty.AUTH_MICROSOFT_CLIENT_SECRET}}",
-     "description": "Shared with the server: references Twenty.AUTH_MICROSOFT_CLIENT_SECRET (edit it there).",
-     "required": false
-    },
-    "AUTH_MICROSOFT_CALLBACK_URL": {
-     "defaultValue": "${{Twenty.AUTH_MICROSOFT_CALLBACK_URL}}",
-     "description": "Shared with the server: references Twenty.AUTH_MICROSOFT_CALLBACK_URL (edit it there).",
-     "required": false
-    },
-    "AUTH_MICROSOFT_APIS_CALLBACK_URL": {
-     "defaultValue": "${{Twenty.AUTH_MICROSOFT_APIS_CALLBACK_URL}}",
-     "description": "Shared with the server: references Twenty.AUTH_MICROSOFT_APIS_CALLBACK_URL (edit it there).",
-     "required": false
-    },
-    "DISABLE_DB_MIGRATIONS": {
-     "defaultValue": "true",
-     "description": "The worker never runs migrations.",
-     "required": false
-    },
-    "DISABLE_CRON_JOBS_REGISTRATION": {
-     "defaultValue": "true",
-     "description": "Cron jobs are registered by the server.",
-     "required": false
+    "Redis": {
+      "icon": "https://cdn.sanity.io/images/sy1jschh/production/0ce0bfdcfbdbf69662b1116671f97c2dd788b655-157x157.svg",
+      "source": {
+        "image": "redis:8.2"
+      },
+      "startCommand": "/bin/sh -c \"rm -rf $RAILWAY_VOLUME_MOUNT_PATH/lost+found/ && exec docker-entrypoint.sh redis-server --requirepass $REDIS_PASSWORD --save 60 1 --dir $RAILWAY_VOLUME_MOUNT_PATH --maxmemory-policy noeviction\"",
+      "preDeployCommand": null,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ON_FAILURE",
+      "restartPolicyMaxRetries": 10,
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": {
+        "mountPath": "/data"
+      },
+      "variables": {
+        "REDISHOST": {
+          "defaultValue": "${{RAILWAY_PRIVATE_DOMAIN}}",
+          "description": "Private network hostname of the Redis service, only resolvable from services in the same environment.",
+          "required": false
+        },
+        "REDISPORT": {
+          "defaultValue": "6379",
+          "description": "Port that Redis listens on.",
+          "required": false
+        },
+        "REDISUSER": {
+          "defaultValue": "default",
+          "description": "Username for authenticating with Redis.",
+          "required": false
+        },
+        "REDIS_URL": {
+          "defaultValue": "redis://${{ REDISUSER }}:${{ REDIS_PASSWORD }}@${{ REDISHOST }}:${{ REDISPORT }}",
+          "description": "Connection string for connecting to Redis using the private network.",
+          "required": false
+        },
+        "REDISPASSWORD": {
+          "defaultValue": "${{REDIS_PASSWORD}}",
+          "description": "Alias of REDIS_PASSWORD for clients that expect the unseparated name.",
+          "required": false
+        },
+        "REDIS_PASSWORD": {
+          "defaultValue": "${{ secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\") }}",
+          "description": "Randomly generated password for authenticating with Redis.",
+          "required": false
+        }
+      }
     }
-   }
   },
-  "Postgres": {
-   "icon": "https://devicons.railway.app/i/postgresql.svg",
-   "source": {
-    "image": "ghcr.io/railwayapp-templates/postgres-ssl:18"
-   },
-   "startCommand": null,
-   "preDeployCommand": null,
-   "healthcheckPath": null,
-   "healthcheckTimeout": null,
-   "restartPolicyType": "ON_FAILURE",
-   "restartPolicyMaxRetries": 10,
-   "numReplicas": 1,
-   "cronSchedule": null,
-   "publicDomain": false,
-   "targetPort": null,
-   "tcpProxy": null,
-   "volume": {
-    "mountPath": "/var/lib/postgresql/data"
-   },
-   "variables": {
-    "PGDATA": {
-     "defaultValue": "/var/lib/postgresql/data/pgdata",
-     "description": "Location where the database will be initialized.",
-     "required": false
-    },
-    "PGHOST": {
-     "defaultValue": "${{RAILWAY_PRIVATE_DOMAIN}}",
-     "description": "Railway Private Domain Name.",
-     "required": false
-    },
-    "PGPORT": {
-     "defaultValue": "5432",
-     "description": "Port to connect to Postgres.",
-     "required": false
-    },
-    "PGUSER": {
-     "defaultValue": "${{ POSTGRES_USER }}",
-     "description": "Required variable for Data panel.",
-     "required": false
-    },
-    "PGDATABASE": {
-     "defaultValue": "${{POSTGRES_DB}}",
-     "description": "Required variable for the data panel.",
-     "required": false
-    },
-    "PGPASSWORD": {
-     "defaultValue": "${{POSTGRES_PASSWORD}}",
-     "description": "Required variable for Data panel.",
-     "required": false
-    },
-    "POSTGRES_DB": {
-     "defaultValue": "railway",
-     "description": "Default database created when image is started.",
-     "required": false
-    },
-    "DATABASE_URL": {
-     "defaultValue": "postgresql://${{PGUSER}}:${{POSTGRES_PASSWORD}}@${{RAILWAY_PRIVATE_DOMAIN}}:5432/${{PGDATABASE}}",
-     "description": "URL to connect to Postgres database.",
-     "required": false
-    },
-    "POSTGRES_USER": {
-     "defaultValue": "postgres",
-     "description": "User to connect to Postgres DB.",
-     "required": false
-    },
-    "SSL_CERT_DAYS": {
-     "defaultValue": "820",
-     "description": "SSL certificate expiry in days.",
-     "required": false
-    },
-    "POSTGRES_PASSWORD": {
-     "defaultValue": "${{ secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\") }}",
-     "description": "Password to connect to DB.",
-     "required": false
-    },
-    "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
-     "defaultValue": "60",
-     "description": "Allow Postgres to cleanly shut down.",
-     "required": false
-    }
-   }
-  },
-  "Redis": {
-   "icon": "https://cdn.sanity.io/images/sy1jschh/production/0ce0bfdcfbdbf69662b1116671f97c2dd788b655-157x157.svg",
-   "source": {
-    "image": "redis:8.2"
-   },
-   "startCommand": "/bin/sh -c \"rm -rf $RAILWAY_VOLUME_MOUNT_PATH/lost+found/ && exec docker-entrypoint.sh redis-server --requirepass $REDIS_PASSWORD --save 60 1 --dir $RAILWAY_VOLUME_MOUNT_PATH --maxmemory-policy noeviction\"",
-   "preDeployCommand": null,
-   "healthcheckPath": null,
-   "healthcheckTimeout": null,
-   "restartPolicyType": "ON_FAILURE",
-   "restartPolicyMaxRetries": 10,
-   "numReplicas": 1,
-   "cronSchedule": null,
-   "publicDomain": false,
-   "targetPort": null,
-   "tcpProxy": null,
-   "volume": {
-    "mountPath": "/data"
-   },
-   "variables": {
-    "REDISHOST": {
-     "defaultValue": "${{RAILWAY_PRIVATE_DOMAIN}}",
-     "description": "Private network hostname of the Redis service, only resolvable from services in the same environment.",
-     "required": false
-    },
-    "REDISPORT": {
-     "defaultValue": "6379",
-     "description": "Port that Redis listens on.",
-     "required": false
-    },
-    "REDISUSER": {
-     "defaultValue": "default",
-     "description": "Username for authenticating with Redis.",
-     "required": false
-    },
-    "REDIS_URL": {
-     "defaultValue": "redis://${{ REDISUSER }}:${{ REDIS_PASSWORD }}@${{ REDISHOST }}:${{ REDISPORT }}",
-     "description": "Connection string for connecting to Redis using the private network.",
-     "required": false
-    },
-    "REDISPASSWORD": {
-     "defaultValue": "${{REDIS_PASSWORD}}",
-     "description": "Alias of REDIS_PASSWORD for clients that expect the unseparated name.",
-     "required": false
-    },
-    "REDIS_PASSWORD": {
-     "defaultValue": "${{ secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\") }}",
-     "description": "Randomly generated password for authenticating with Redis.",
-     "required": false
-    }
-   }
-  }
- },
- "buckets": [
-  "Bucket"
- ]
+  "buckets": [
+    "Bucket"
+  ]
 }
